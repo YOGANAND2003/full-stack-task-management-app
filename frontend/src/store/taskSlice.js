@@ -1,18 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/tasks';
+// Define the base API URL
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/tasks`;
 
+// Helper function to get the authorization header
 const getAuthHeader = () => {
   const token = localStorage.getItem('token'); 
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// Async thunk for fetching tasks
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async ({ page = 1, limit = 10, search = '', status, sortBy, sortOrder } = {}) => {
     const params = { page, limit, search, status, sortBy, sortOrder };
-    const response = await axios.get(API_URL + '/gettasks', {
+    const response = await axios.get(`${API_URL}/gettasks`, {
       params,
       headers: getAuthHeader()
     });
@@ -20,11 +23,12 @@ export const fetchTasks = createAsyncThunk(
   }
 );
 
+// Async thunk for adding a new task
 export const addTask = createAsyncThunk(
   'tasks/addTask',
   async (task, { rejectWithValue }) => {
     try {
-      const response = await axios.post(API_URL + '/addtask', task, {
+      const response = await axios.post(`${API_URL}/addtask`, task, {
         headers: getAuthHeader()
       });
       return response.data;
@@ -34,6 +38,7 @@ export const addTask = createAsyncThunk(
   }
 );
 
+// Async thunk for updating a task
 export const updateTask = createAsyncThunk(
   'tasks/updateTask',
   async ({ id, task }, { rejectWithValue }) => {
@@ -48,6 +53,7 @@ export const updateTask = createAsyncThunk(
   }
 );
 
+// Async thunk for deleting a task
 export const deleteTask = createAsyncThunk(
   'tasks/deleteTask',
   async (id, { rejectWithValue }) => {
@@ -62,6 +68,7 @@ export const deleteTask = createAsyncThunk(
   }
 );
 
+// Task slice
 const taskSlice = createSlice({
   name: 'tasks',
   initialState: {
@@ -69,7 +76,7 @@ const taskSlice = createSlice({
     status: 'idle',
     error: null
   },
-  reducers: {},
+  reducers: {}, // Add reducers here if needed
   extraReducers: (builder) => {
     builder
       .addCase(fetchTasks.pending, (state) => {
@@ -77,7 +84,7 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = action.payload.tasks;
+        state.items = action.payload.tasks; // Assuming the API response contains a 'tasks' field
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.status = 'failed';
@@ -98,4 +105,5 @@ const taskSlice = createSlice({
   }
 });
 
+// Export the reducer
 export default taskSlice.reducer;
